@@ -10,7 +10,7 @@ import (
 	"stellar.af/meraki-reboot/util"
 )
 
-var Version string = "0.1.0"
+var Version string = "0.2.0"
 
 func logSetup(fileName string) {
 	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)

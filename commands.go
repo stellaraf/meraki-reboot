@@ -16,10 +16,6 @@ type argT struct {
 	Exclusions  string `cli:"e,exclusions" usage:"Comma-separated list of tags to exclude from the results"`
 }
 
-type devicesT struct {
-	cli.Helper
-}
-
 type slackT struct {
 	cli.Helper
 	Message string `cli:"m,message" usage:"Message"`
@@ -29,10 +25,6 @@ type slackT struct {
 type rebootT struct {
 	cli.Helper
 	Serial string `cli:"s,serial" usage:"Device serial number"`
-}
-
-type rebootAllT struct {
-	cli.Helper
 }
 
 var title string = fmt.Sprintf(`
@@ -50,9 +42,9 @@ var rootCmd = &cli.Command{
 var devicesCmd = &cli.Command{
 	Name: "devices",
 	Desc: "List all matched devices",
-	Argv: func() interface{} { return new(devicesT) },
+	Argv: func() interface{} { return new(argT) },
 	Fn: func(ctx *cli.Context) error {
-		args := ctx.RootArgv().(*argT)
+		args := ctx.Argv().(*argT)
 		c := ctx.Color()
 		exclusions := util.SplitRemoveEmpty(args.Exclusions, ",")
 		orgID, err := meraki.GetOrganizationID(args.OrgName)
@@ -114,7 +106,7 @@ var slackTestCmd = &cli.Command{
 var rebootAllCmd = &cli.Command{
 	Name: "reboot-all",
 	Desc: "Reboot all devices",
-	Argv: func() interface{} { return new(rebootAllT) },
+	Argv: func() interface{} { return new(argT) },
 	Fn: func(ctx *cli.Context) error {
 		args := ctx.RootArgv().(*argT)
 		c := ctx.Color()

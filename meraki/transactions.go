@@ -9,8 +9,7 @@ import (
 	"stellar.af/meraki-reboot/util"
 )
 
-func findCorresponding(result gjson.Result, aKey, aValue, bKey string) *string {
-	var bValue string = ""
+func findCorresponding(result gjson.Result, aKey, aValue, bKey string) (bValue string, err error) {
 	result.ForEach(func(key, value gjson.Result) bool {
 		a := value.Get(aKey).String()
 		if a == aValue {
@@ -20,30 +19,30 @@ func findCorresponding(result gjson.Result, aKey, aValue, bKey string) *string {
 		return true
 	})
 	if bValue != "" {
-		return &bValue
+		return bValue, nil
 	}
-	return nil
+	return "", fmt.Errorf("Unable to find corresponding k/v pair")
 }
 
 func GetOrganizationID(orgName string) (orgID string, err error) {
 	allOrgs, err := MerakiRequest("GET", "/api/v1/organizations", emptyQuery)
 	util.Check("Error fetching organizations from Meraki dashboard", err)
-	matching := findCorresponding(allOrgs, "name", orgName, "id")
-	if matching != nil {
-		return *matching, nil
+	matching, err := findCorresponding(allOrgs, "name", orgName, "id")
+	if err != nil {
+		return "", fmt.Errorf("Unable to find matching Meraki organization for '%s'\n", orgName)
 	}
-	return "", fmt.Errorf("Unable to find matching Meraki organization for '%s'\n", orgName)
+	return matching, nil
 
 }
 
 func GetNetworkID(orgID string, networkName string) (networkID string, err error) {
 	allNets, err := MerakiRequest("GET", fmt.Sprintf("/api/v1/organizations/%s/networks", orgID), emptyQuery)
 	util.Check("Error getting networks for organization ID '%s'", err, orgID)
-	matching := findCorresponding(allNets, "name", networkName, "id")
-	if matching != nil {
-		return *matching, nil
+	matching, err := findCorresponding(allNets, "name", networkName, "id")
+	if err != nil {
+		return "", fmt.Errorf("Unable to find network matching '%s' in organization '%s'", networkName, orgID)
 	}
-	return "", fmt.Errorf("Unable to find network matching '%s' in organization '%s'", networkName, orgID)
+	return matching, nil
 }
 
 func GetNetworkDevices(networkID string, exclusions []string) (devices []*types.MerakiDevice, err error) {
