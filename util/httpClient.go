@@ -14,7 +14,7 @@ import (
 	"stellar.af/meraki-reboot/types"
 )
 
-const requestTimeout int = 15
+const requestTimeout int = 30
 
 var httpClient *http.Client
 var headers map[string]string
@@ -28,7 +28,7 @@ func CreateHTTPClient() *http.Client {
 
 	client := &http.Client{Jar: jar, Transport: &http.Transport{
 		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
+			Timeout:   time.Duration(requestTimeout) * time.Second,
 			KeepAlive: 30 * time.Second,
 		}).Dial,
 		TLSHandshakeTimeout:   10 * time.Second,
