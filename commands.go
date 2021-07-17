@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/mkideal/cli"
 	log "github.com/sirupsen/logrus"
@@ -10,6 +12,10 @@ import (
 )
 
 type argT struct {
+	cli.Helper
+}
+
+type devicesT struct {
 	cli.Helper
 	OrgName     string `cli:"o,org" usage:"Meraki Organization Name"`
 	NetworkName string `cli:"n,network" usage:"Meraki Network Name"`
@@ -27,6 +33,14 @@ type rebootT struct {
 	Serial string `cli:"s,serial" usage:"Device serial number"`
 }
 
+type rebootAllT struct {
+	cli.Helper
+	OrgName     string `cli:"o,org" usage:"Meraki Organization Name"`
+	NetworkName string `cli:"n,network" usage:"Meraki Network Name"`
+	Exclusions  string `cli:"e,exclusions" usage:"Comma-separated list of tags to exclude from the results"`
+	Wait        string `cli:"w,wait" usage:"Seconds to wait between reboots" dft:"1"`
+}
+
 var title string = fmt.Sprintf(`
 meraki-reboot %s
   Reboot shit tons of Meraki devices because Meraki is terrible`, Version)
@@ -35,16 +49,16 @@ var rootCmd = &cli.Command{
 	Desc: title,
 	Argv: func() interface{} { return new(argT) },
 	Fn: func(ctx *cli.Context) error {
-		return nil
+		return fmt.Errorf("No arguments specified\n")
 	},
 }
 
 var devicesCmd = &cli.Command{
 	Name: "devices",
-	Desc: "List all matched devices",
-	Argv: func() interface{} { return new(argT) },
+	Desc: "List all matching devices",
+	Argv: func() interface{} { return new(devicesT) },
 	Fn: func(ctx *cli.Context) error {
-		args := ctx.Argv().(*argT)
+		args := ctx.Argv().(*devicesT)
 		c := ctx.Color()
 		exclusions := util.SplitRemoveEmpty(args.Exclusions, ",")
 		orgID, err := meraki.GetOrganizationID(args.OrgName)
@@ -106,10 +120,15 @@ var slackTestCmd = &cli.Command{
 var rebootAllCmd = &cli.Command{
 	Name: "reboot-all",
 	Desc: "Reboot all devices",
-	Argv: func() interface{} { return new(argT) },
+	Argv: func() interface{} { return new(rebootAllT) },
 	Fn: func(ctx *cli.Context) error {
-		args := ctx.Argv().(*argT)
+		args := ctx.Argv().(*rebootAllT)
 		c := ctx.Color()
+		wait, err := strconv.Atoi(args.Wait)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
 		exclusions := util.SplitRemoveEmpty(args.Exclusions, ",")
 		orgID, err := meraki.GetOrganizationID(args.OrgName)
 		if err != nil {
@@ -127,7 +146,10 @@ var rebootAllCmd = &cli.Command{
 			return err
 		}
 		count := 0
-		for _, device := range devices {
+		for i, device := range devices {
+			if i != 0 {
+				time.Sleep(time.Duration(wait) * time.Second)
+			}
 			success, err := meraki.RebootDevice(device.Serial)
 			if err != nil {
 				msg := fmt.Sprintf("Failed to reboot device %s (%s)\n%s", device.Name, device.Serial, err)
@@ -157,7 +179,7 @@ var rebootAllCmd = &cli.Command{
 		success := true
 		SendWebhook(SlackArgs{Org: args.OrgName, Msg: msg, Success: &success})
 		ctx.String(
-			"Rebooted %d devices for organization '%s', network '%s'\n",
+			"Rebooted %s devices for organization '%s', network '%s'\n",
 			c.Green(c.Bold(count)),
 			c.Blue(c.Bold(args.OrgName)),
 			c.Yellow(c.Bold(args.NetworkName)),
