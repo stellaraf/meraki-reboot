@@ -31,15 +31,12 @@ tar xvfz <release file> meraki-reboot
 ```console
 $ ./meraki-reboot --help
 
-meraki-reboot 0.1.0
+meraki-reboot 0.2.2
   Reboot shit tons of Meraki devices because Meraki is terrible
 
 Options:
 
-  -h, --help         display help information
-  -o, --org          Meraki Organization Name
-  -n, --network      Meraki Network Name
-  -e, --exclusions   Comma-separated list of tags to exclude from the results
+  -h, --help   display help information
 
 Commands:
 
@@ -48,7 +45,52 @@ Commands:
   reboot       Reboot one device
   reboot-all   Reboot all devices
   slack        Send a test Slack message
+```
 
+```console
+$ ./meraki-reboot devices --help
+List all matched devices
+
+Options:
+
+  -h, --help         display help information
+  -o, --org          Meraki Organization Name
+  -n, --network      Meraki Network Name
+  -e, --exclusions   Comma-separated list of tags to exclude from the results
+```
+
+```console
+$ ./meraki-reboot reboot --help
+Reboot one device
+
+Options:
+
+  -h, --help     display help information
+  -s, --serial   Device serial number
+```
+
+```console
+$ ./meraki-reboot reboot-all --help
+Reboot all devices
+
+Options:
+
+  -h, --help         display help information
+  -o, --org          Meraki Organization Name
+  -n, --network      Meraki Network Name
+  -e, --exclusions   Comma-separated list of tags to exclude from the results
+  -w, --wait[=1]     Seconds to wait between reboots
+```
+
+```console
+$ ./meraki-reboot slack --help
+Send a test Slack message
+
+Options:
+
+  -h, --help      display help information
+  -m, --message   Message
+  -s, --success   Success status
 ```
 
 ### Environment Variables

@@ -9,6 +9,7 @@ import (
 	"stellar.af/meraki-reboot/util"
 )
 
+// findCorresponding gets the value of `bKey` if the value of `aKey` equals `aValue`.
 func findCorresponding(result gjson.Result, aKey, aValue, bKey string) (bValue string, err error) {
 	result.ForEach(func(key, value gjson.Result) bool {
 		a := value.Get(aKey).String()
@@ -24,6 +25,7 @@ func findCorresponding(result gjson.Result, aKey, aValue, bKey string) (bValue s
 	return "", fmt.Errorf("Unable to find corresponding k/v pair")
 }
 
+// GetOrganizationID finds a Meraki organization's ID based on its name.
 func GetOrganizationID(orgName string) (orgID string, err error) {
 	allOrgs, err := MerakiRequest("GET", "/api/v1/organizations", emptyQuery)
 	util.Check("Error fetching organizations from Meraki dashboard", err)
@@ -35,6 +37,8 @@ func GetOrganizationID(orgName string) (orgID string, err error) {
 
 }
 
+// GetNetworkID finds a Meraki network's ID based on the Organization ID and the network name.
+// GetOrganizationID must be run first.
 func GetNetworkID(orgID string, networkName string) (networkID string, err error) {
 	allNets, err := MerakiRequest("GET", fmt.Sprintf("/api/v1/organizations/%s/networks", orgID), emptyQuery)
 	util.Check("Error getting networks for organization ID '%s'", err, orgID)
@@ -45,6 +49,8 @@ func GetNetworkID(orgID string, networkName string) (networkID string, err error
 	return matching, nil
 }
 
+// GetNetworkDevices gets all devices belonging to a Meraki network, excluding any devices with
+// tags in `exclusions`.
 func GetNetworkDevices(networkID string, exclusions []string) (devices []*types.MerakiDevice, err error) {
 	allDevices, err := MerakiRequest("GET", fmt.Sprintf("/api/v1/networks/%s/devices", networkID), emptyQuery)
 	util.Check("Error getting devices for network ID '%s'", err, networkID)
@@ -64,6 +70,7 @@ func GetNetworkDevices(networkID string, exclusions []string) (devices []*types.
 	return devices, err
 }
 
+// GetDevice gets a single Meraki device.
 func GetDevice(serial string) *types.MerakiDevice {
 	d, err := MerakiRequest("GET", fmt.Sprintf("/api/v1/devices/%s", serial), emptyQuery)
 	util.Check("Error getting device with serial number '%s'", err, serial)
@@ -74,6 +81,7 @@ func GetDevice(serial string) *types.MerakiDevice {
 
 }
 
+// RebootDevice reboots a single Meraki device.
 func RebootDevice(serial string) (success bool, err error) {
 	res, err := MerakiRequest("POST", fmt.Sprintf("/api/v1/devices/%s/reboot", serial), emptyQuery)
 	success = res.Get("success").Bool()

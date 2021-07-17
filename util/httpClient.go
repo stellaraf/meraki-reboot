@@ -1,7 +1,6 @@
 package util
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -34,27 +33,6 @@ func CreateHTTPClient() *http.Client {
 		TLSHandshakeTimeout:   10 * time.Second,
 		ResponseHeaderTimeout: 10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-	}, Timeout: time.Duration(requestTimeout) * time.Second}
-
-	return client
-}
-
-func CreateInsecureHTTPClient() *http.Client {
-	jar, err := cookiejar.New(nil)
-
-	if err != nil {
-		panic(err)
-	}
-
-	client := &http.Client{Jar: jar, Transport: &http.Transport{
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ResponseHeaderTimeout: 10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
 	}, Timeout: time.Duration(requestTimeout) * time.Second}
 
 	return client

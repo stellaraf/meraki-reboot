@@ -1,5 +1,7 @@
 package types
 
+// MerakiDevice is a representation of a Meraki device.
+// See: https://developer.cisco.com/meraki/api-v1/#!get-device
 type MerakiDevice = struct {
 	Lat         float64  `json:"lat"`
 	Lng         float64  `json:"lng"`
