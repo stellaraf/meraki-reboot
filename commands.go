@@ -108,7 +108,7 @@ var rebootAllCmd = &cli.Command{
 	Desc: "Reboot all devices",
 	Argv: func() interface{} { return new(argT) },
 	Fn: func(ctx *cli.Context) error {
-		args := ctx.RootArgv().(*argT)
+		args := ctx.Argv().(*argT)
 		c := ctx.Color()
 		exclusions := util.SplitRemoveEmpty(args.Exclusions, ",")
 		orgID, err := meraki.GetOrganizationID(args.OrgName)
